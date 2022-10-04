@@ -14,7 +14,6 @@ module.exports.getCards = (req, res) => {
     });
 };
 
-
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
 
@@ -28,7 +27,6 @@ module.exports.createCard = (req, res) => {
       res.status(INTERNAL_SERVER_ERROR).send({ message: DEFAULT_ERROR_MESSAGE });
     });
 };
-
 
 module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
@@ -47,7 +45,6 @@ module.exports.deleteCard = (req, res) => {
       res.status(INTERNAL_SERVER_ERROR).send({ message: DEFAULT_ERROR_MESSAGE });
     });
 };
-
 
 module.exports.likeCard = (req, res) => {
   Card.findByIdAndUpdate(
@@ -70,7 +67,6 @@ module.exports.likeCard = (req, res) => {
       res.status(INTERNAL_SERVER_ERROR).send({ message: DEFAULT_ERROR_MESSAGE });
     });
 };
-
 
 module.exports.dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(

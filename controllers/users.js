@@ -6,7 +6,6 @@ const {
   DEFAULT_ERROR_MESSAGE,
 } = require('../errors/errors');
 
-
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send(users))
@@ -69,7 +68,6 @@ module.exports.updateUser = (req, res) => {
     });
 };
 
-
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
@@ -86,6 +84,7 @@ module.exports.updateAvatar = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST).send({ message: '400 — Переданы некорректные данные при обновлении аватара пользователя.' });
+        return;
       }
       res.status(INTERNAL_SERVER_ERROR).send({ message: DEFAULT_ERROR_MESSAGE });
     });
