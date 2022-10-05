@@ -1,52 +1,47 @@
 const Card = require('../models/card');
-const {
-  NOTFOUND_ERROR,
-  INTERNAL_SERVER_ERROR,
-  BAD_REQUEST,
-  DEFAULT_ERROR_MESSAGE,
-} = require('../errors/errors');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(200).send(cards))
-    .catch(() => {
-      res.status(INTERNAL_SERVER_ERROR).send({ message: DEFAULT_ERROR_MESSAGE });
-    });
+    .catch(next);
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(200).send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(BAD_REQUEST).send({ message: '400 — Переданы некорректные данные при создании карточки.' });
-        return;
+        return next(new BadRequestError('400 — Переданы некорректные данные при создании карточки.'));
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: DEFAULT_ERROR_MESSAGE });
+      return next(err);
     });
 };
 
-module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+module.exports.deleteCard = (req, res, next) => {
+  Card.findById(req.params.cardId)
     .then((cards) => {
       if (!cards) {
-        res.status(NOTFOUND_ERROR).send({ message: '404 — Карточка не найдена.' });
-        return;
+        throw new NotFoundError('404 — Карточка не найдена.');
       }
-      res.status(200).send(cards);
+      if (!cards.owner.equals(req.user._id)) {
+        throw new ForbiddenError('403 — Нельзя удалить чужую карточку. ');
+      }
+      return cards.remove().then(() => res.status(200).send(cards));
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: '400 — Ошибка обработки данных.' });
-        return;
+        return next(new BadRequestError('400 — Ошибка обработки данных.'));
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: DEFAULT_ERROR_MESSAGE });
+      return next(err);
     });
 };
 
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -54,21 +49,19 @@ module.exports.likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(NOTFOUND_ERROR).send({ message: '404 — Карточка не найдена.' });
-        return;
+        throw new NotFoundError('404 — Карточка не найдена.');
       }
-      res.status(200).send(card);
+      res.status(200).send({ card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: '400 — Ошибка обработки данных.' });
-        return;
+        return next(new BadRequestError('400 — Ошибка обработки данных.'));
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: DEFAULT_ERROR_MESSAGE });
+      return next(err);
     });
 };
 
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -76,16 +69,14 @@ module.exports.dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        res.status(NOTFOUND_ERROR).send({ message: '404 — Карточка не найдена. Лайк не удалось убрать.' });
-        return;
+        throw new NotFoundError('404 — Карточка не найдена. Лайк не удалось убрать.');
       }
-      res.status(200).send(card);
+      res.status(200).send({ card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(BAD_REQUEST).send({ message: '400 — Ошибка обработки данных.' });
-        return;
+        return next(new BadRequestError('400 — Ошибка обработки данных.'));
       }
-      res.status(INTERNAL_SERVER_ERROR).send({ message: DEFAULT_ERROR_MESSAGE });
+      return next(err);
     });
 };
