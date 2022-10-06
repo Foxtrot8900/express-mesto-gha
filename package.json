@@ -18,6 +18,16 @@
     "dev": "nodemon app.js",
     "lint": "npx eslint ."
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/foxtrot8900/express-mesto-gha.git"
+  },
+  "author": "foxtrot8900",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/foxtrot8900/express-mesto-gha/issues"
+  },
+  "homepage": "https://github.com/foxtrot8900/express-mesto-gha#readme",
   "devDependencies": {
     "eslint": "^8.2.0",
     "eslint-config-airbnb-base": "^15.0.0",
